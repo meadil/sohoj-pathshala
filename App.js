@@ -1,19 +1,47 @@
+﻿import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AlertProvider } from './components/CustomAlert';
+import { UserProvider } from './contexts/UserContext';
+import RootNavigator from './navigation/RootNavigator';
+import { colors } from './theme/theme';
 
+/**
+ * App Root.
+ * Loads Hind Siliguri fonts, then mounts providers and target-specific RootNavigator.
+ */
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'HindSiliguri-Regular': require('./assets/fonts/HindSiliguri-Regular.ttf'),
+    'HindSiliguri-SemiBold': require('./assets/fonts/HindSiliguri-SemiBold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <AlertProvider>
+        <UserProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </UserProvider>
+      </AlertProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
