@@ -38,3 +38,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Firebase config — contains project identifiers, must never be committed
+/google-services.json
+/android/app/google-services.json

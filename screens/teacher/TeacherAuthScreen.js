@@ -1,8 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,117 +9,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
-import StatusChip from '../../components/StatusChip';
+
 import { useAlert } from '../../components/CustomAlert';
 import { useUser } from '../../contexts/UserContext';
 import { colors, radius, spacing, typography } from '../../theme/theme';
 
-export default function TeacherAuthScreen() {
-  const [isSignUp, setIsSignUp] = useState(false);
+/**
+ * TeacherAuthScreen - Teacher sign-in only.
+ * Sign-up moved to TeacherSignupScreen (teacher.html#/signup is a
+ * separate screen in the prototype). The "Apply to teach" toggle
+ * navigates to the TeacherSignup route instead of toggling in place,
+ * so no dead signup branch remains here.
+ */
+export default function TeacherAuthScreen({ navigation }) {
+  const [lang, setLang] = useState('bn'); // 'bn' | 'en'
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
 
-  // Email confirmation state
-  const [submittedEmail, setSubmittedEmail] = useState(null);
-
-  // Form state
-  const [name, setName] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const { signIn, signUpTeacher, resendConfirmationEmail } = useUser();
+  const { signIn } = useUser();
   const alert = useAlert();
-
-  const handleResend = async () => {
-    if (!submittedEmail) return;
-    setResending(true);
-    try {
-      await resendConfirmationEmail(submittedEmail);
-      alert('Email Resent', 'A fresh confirmation link has been sent to your inbox.');
-    } catch (err) {
-      alert('Resend Failed', err.message || 'Unable to resend email at this time.');
-    } finally {
-      setResending(false);
-    }
-  };
+  const isBn = lang === 'bn';
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      alert('Missing Fields', 'Please enter both your email and password.');
+      alert(
+        isBn ? 'তথ্য প্রয়োজন' : 'Missing Fields',
+        isBn ? 'অনুগ্রহ করে ইমেইল এবং পাসওয়ার্ড দুটোই লিখুন।' : 'Please enter both your email and password.'
+      );
       return;
-    }
-
-    if (isSignUp) {
-      if (!name.trim() || !phone.trim()) {
-        alert('Missing Fields', 'Full name and contact phone number are required for teacher accounts.');
-        return;
-      }
     }
 
     setLoading(true);
     try {
-      if (isSignUp) {
-        const res = await signUpTeacher({
-          email: email.trim(),
-          password,
-          name: name.trim(),
-          nickname: nickname.trim() || name.trim(),
-          phone: phone.trim(),
-        });
-
-        if (res.needsEmailConfirmation) {
-          setSubmittedEmail(email.trim());
-        }
-      } else {
-        await signIn({ email: email.trim(), password });
-      }
+      await signIn({ email: email.trim(), password });
     } catch (err) {
-      alert('Authentication Error', err.message || 'An error occurred during sign in.');
+      alert(
+        isBn ? 'প্রমাণীকরণ ব্যর্থ' : 'Authentication Error',
+        err.message || (isBn ? 'সাইন ইন করার সময় একটি সমস্যা হয়েছে।' : 'An error occurred during sign in.')
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  // Dedicated "Check Your Email" State
-  if (submittedEmail) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.confirmContent}>
-          <Card variant="elevated" style={styles.confirmCard}>
-            <StatusChip label="Verification Sent" status="gold" size="md" />
-            <Text style={styles.title}>Confirm your email</Text>
-            <Text style={styles.confirmEmail}>{submittedEmail}</Text>
-            <Text style={styles.confirmText}>
-              We sent a verification link to your email. Click the link to confirm your address. Once confirmed, your application will be reviewed by the Owner.
-            </Text>
-
-            <View style={styles.actionColumn}>
-              <Button
-                title={resending ? 'Resending...' : 'Resend Email'}
-                variant="outline"
-                size="md"
-                loading={resending}
-                onPress={handleResend}
-              />
-              <Button
-                title="Back to Sign In"
-                variant="ghost"
-                size="md"
-                onPress={() => {
-                  setSubmittedEmail(null);
-                  setIsSignUp(false);
-                }}
-              />
-            </View>
-          </Card>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -128,57 +62,34 @@ export default function TeacherAuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}
       >
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
-            <StatusChip label="Teacher Portal" status="gold" size="md" />
             <Text style={styles.title}>Sohoj Shikkhok</Text>
             <Text style={styles.subtitle}>
-              {isSignUp ? 'Apply as an instructor' : 'Sign in to your teacher account'}
+              {isBn ? 'আপনার শিক্ষক অ্যাকাউন্টে সাইন ইন করুন' : 'Sign in to your teacher account'}
             </Text>
+            <View style={styles.langToggle}>
+              <TouchableOpacity
+                onPress={() => setLang('bn')}
+                style={[styles.langPill, isBn && styles.langPillActive]}
+              >
+                <Text style={[styles.langText, isBn && styles.langTextActive]}>বাংলা</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setLang('en')}
+                style={[styles.langPill, !isBn && styles.langPillActive]}
+              >
+                <Text style={[styles.langText, !isBn && styles.langTextActive]}>English</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <Card variant="elevated" style={styles.card}>
-            {isSignUp && (
-              <>
-                <View style={styles.field}>
-                  <Text style={styles.label}>Full Name *</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g. Rafiq Ahmed"
-                    placeholderTextColor={colors.textTertiary}
-                    value={name}
-                    onChangeText={setName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
-                <View style={styles.field}>
-                  <Text style={styles.label}>Display Nickname</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g. Rafiq"
-                    placeholderTextColor={colors.textTertiary}
-                    value={nickname}
-                    onChangeText={setNickname}
-                  />
-                </View>
-
-                <View style={styles.field}>
-                  <Text style={styles.label}>Phone Number *</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="01XXXXXXXXX"
-                    placeholderTextColor={colors.textTertiary}
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                  />
-                </View>
-              </>
-            )}
-
+          <View style={styles.formContainer}>
             <View style={styles.field}>
-              <Text style={styles.label}>Email Address *</Text>
+              <Text style={styles.label}>{isBn ? 'ইমেইল ঠিকানা *' : 'Email Address *'}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="teacher@example.com"
@@ -191,7 +102,7 @@ export default function TeacherAuthScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Password *</Text>
+              <Text style={styles.label}>{isBn ? 'পাসওয়ার্ড *' : 'Password *'}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
@@ -203,7 +114,7 @@ export default function TeacherAuthScreen() {
             </View>
 
             <Button
-              title={isSignUp ? 'Submit Teacher Application' : 'Sign In'}
+              title={isBn ? 'সাইন ইন' : 'Sign In'}
               variant="primary"
               size="lg"
               loading={loading}
@@ -212,16 +123,14 @@ export default function TeacherAuthScreen() {
             />
 
             <TouchableOpacity
-              onPress={() => setIsSignUp((prev) => !prev)}
+              onPress={() => navigation?.navigate?.('TeacherSignup')}
               style={styles.toggleRow}
             >
               <Text style={styles.toggleText}>
-                {isSignUp
-                  ? 'Already have an account? Sign In'
-                  : "Don't have a teacher account? Apply to teach"}
+                {isBn ? 'শিক্ষক অ্যাকাউন্ট নেই? পড়াতে আবেদন করুন' : "Don't have a teacher account? Apply to teach"}
               </Text>
             </TouchableOpacity>
-          </Card>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -231,83 +140,96 @@ export default function TeacherAuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background, // #FBF7F0 warm canvas
   },
   scroll: {
-    padding: spacing.lg,
+    paddingHorizontal: 20, // 20px matching prototype .sp-body
+    paddingTop: spacing.xl,
+    paddingBottom: 44, // 44px bottom padding
     flexGrow: 1,
     justifyContent: 'center',
   },
-  confirmContent: {
-    flex: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
-  },
-  confirmCard: {
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  confirmEmail: {
-    ...typography.bodyBold,
-    color: colors.primary,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  confirmText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing.xl,
-  },
   header: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: 28,
     gap: spacing.xs,
   },
   title: {
     ...typography.hero,
     color: colors.textPrimary,
+    textAlign: 'center',
   },
   subtitle: {
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginTop: 2,
   },
-  card: {
-    padding: spacing.lg,
+  formContainer: {
+    width: '100%',
   },
   field: {
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   label: {
-    ...typography.subhead,
+    fontSize: 15,
+    fontFamily: 'HindSiliguri-SemiBold',
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   input: {
-    ...typography.body,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
+    fontSize: 17,
+    fontFamily: 'HindSiliguri-Regular',
+    minHeight: 52,
+    backgroundColor: colors.surface, // #FFFFFF pure white
+    borderWidth: 2, // 2px border
+    borderColor: colors.border, // #E5E5EA
+    borderRadius: radius.input, // 14px radius
+    paddingHorizontal: 16,
     color: colors.textPrimary,
   },
   submitBtn: {
-    marginTop: spacing.md,
+    marginTop: 12,
   },
   toggleRow: {
-    marginTop: spacing.lg,
+    marginTop: 20,
     alignItems: 'center',
+    paddingVertical: spacing.sm,
   },
   toggleText: {
-    ...typography.subhead,
+    fontSize: 15,
+    fontFamily: 'HindSiliguri-SemiBold',
     color: colors.primary,
   },
-  actionColumn: {
-    width: '100%',
-    gap: spacing.sm,
+  langToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    padding: 3,
+    gap: 2,
+    marginTop: spacing.sm,
+  },
+  langPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    minHeight: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  langPillActive: {
+    backgroundColor: colors.primary,
+  },
+  langText: {
+    fontSize: 14,
+    fontFamily: 'HindSiliguri-SemiBold',
+    color: colors.textSecondary,
+  },
+  langTextActive: {
+    color: '#FFFFFF',
   },
 });

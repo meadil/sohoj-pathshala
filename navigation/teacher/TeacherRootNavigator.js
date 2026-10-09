@@ -1,5 +1,6 @@
 ﻿import React from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import StatusChip from '../../components/StatusChip';
@@ -7,8 +8,26 @@ import { useUser } from '../../contexts/UserContext';
 import PendingApprovalScreen from '../../screens/teacher/PendingApprovalScreen';
 import RejectedApprovalScreen from '../../screens/teacher/RejectedApprovalScreen';
 import TeacherAuthScreen from '../../screens/teacher/TeacherAuthScreen';
+import TeacherSignupScreen from '../../screens/teacher/TeacherSignupScreen';
 import TeacherApp from './TeacherApp';
 import { colors, spacing, typography } from '../../theme/theme';
+
+const AuthStack = createNativeStackNavigator();
+
+// Unauthenticated teacher flow mirrors the prototype's separate
+// screens: SignIn (TeacherAuth) → Signup (TeacherSignup) → Pending.
+// PendingApproval is registered here so a fresh signup lands on it
+// immediately (the guard re-routes there again post-link-click once
+// the profile exists).
+function TeacherAuthStack() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+      <AuthStack.Screen name="TeacherSignIn" component={TeacherAuthScreen} />
+      <AuthStack.Screen name="TeacherSignup" component={TeacherSignupScreen} />
+      <AuthStack.Screen name="PendingApproval" component={PendingApprovalScreen} />
+    </AuthStack.Navigator>
+  );
+}
 
 function AccessDeniedScreen({ onSignOut }) {
   return (
@@ -47,9 +66,9 @@ export default function TeacherRootNavigator() {
     );
   }
 
-  // Unauthenticated -> Teacher Login / Application
+  // Unauthenticated -> Teacher Login / Application stack
   if (!session) {
-    return <TeacherAuthScreen />;
+    return <TeacherAuthStack />;
   }
 
   // Owner always has access

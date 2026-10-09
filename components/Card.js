@@ -1,4 +1,4 @@
-﻿import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, radius, shadow, spacing } from '../theme/theme';
 
 /**
@@ -53,7 +53,7 @@ export default function Card({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.card,
+    borderRadius: radius.card, // 20px from prototype --sp-radius-card
     backgroundColor: colors.surface,
     overflow: 'hidden',
   },
@@ -62,22 +62,22 @@ const styles = StyleSheet.create({
   },
   elevated: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
+    borderWidth: 2,
+    borderColor: colors.border,
     ...shadow.card,
   },
   flat: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
   },
   muted: {
     backgroundColor: colors.backgroundMuted,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
+    borderWidth: 1.5,
+    borderColor: colors.borderDeep,
   },
   pressed: {
-    opacity: 0.92,
+    opacity: 0.94,
     transform: [{ scale: 0.99 }],
   },
 });

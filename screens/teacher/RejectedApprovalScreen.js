@@ -1,6 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import * as Linking from 'expo-linking';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import StatusChip from '../../components/StatusChip';
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    ...typography.title1,
+    ...typography.largeTitle,
     color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.xs,

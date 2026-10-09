@@ -1,6 +1,7 @@
 ﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
+import { syncPushTokenForUser } from '../services/NotificationsService';
 
 const UserContext = createContext(null);
 
@@ -51,6 +52,7 @@ export function UserProvider({ children }) {
       setSession(session);
       if (session?.user) {
         await fetchProfile(session.user.id);
+        syncPushTokenForUser(session.user.id);
       }
       setLoading(false);
     });
@@ -59,6 +61,7 @@ export function UserProvider({ children }) {
       setSession(newSession);
       if (newSession?.user) {
         await fetchProfile(newSession.user.id);
+        syncPushTokenForUser(newSession.user.id);
       } else {
         setProfile(null);
       }
@@ -127,7 +130,33 @@ export function UserProvider({ children }) {
         emailRedirectTo: redirectUrl,
       },
     });
+if (error) throw error;
+  };
+
+  // Student signup (OTP flow): email a one-time code to the student.
+  // See STATUS.md "Current state" for the chosen signInWithOtp -> verifyOtp
+  // -> updateUser(password) flow.
+  const signInWithOtp = async ({ email, phone }) => {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        data: { phone },
+        shouldCreateUser: true,
+      },
+    });
     if (error) throw error;
+    return data;
+  };
+
+  // Student signup (OTP flow): verify the emailed code in Step 2 (OTP).
+  const verifyOtp = async ({ email, token }) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    if (error) throw error;
+    return data;
   };
 
   const signIn = async ({ email, password }) => {
@@ -135,14 +164,33 @@ export function UserProvider({ children }) {
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      // Surface a clear, actionable message instead of the raw
+      // "Email not confirmed" / "Invalid login" Supabase errors.
+      if (msg.includes('email not confirmed') || msg.includes('not confirmed')) {
+        throw new Error('Please check your email and confirm your account before signing in.');
+      }
+      if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
+        throw new Error('Invalid email or password.');
+      }
+      throw error;
+    }
     return data;
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setProfile(null);
-    setSession(null);
+    try {
+      // scope:'local' clears the stored session without needing the
+      // server — a failed server call previously left zombie sessions
+      // in storage that resurrected on every fresh boot.
+      await supabase.auth.signOut({ scope: 'local' });
+    } finally {
+      // Always clear local state, even if the call throws —
+      // otherwise the guard keeps routing as if still logged in.
+      setProfile(null);
+      setSession(null);
+    }
   };
 
   const updateProfile = async (updates) => {
@@ -180,9 +228,11 @@ export function UserProvider({ children }) {
         isOwner,
         teacherApprovalStatus,
         isApprovedTeacher,
-        signUpStudent,
+signUpStudent,
         signUpTeacher,
         resendConfirmationEmail,
+        signInWithOtp,
+        verifyOtp,
         signIn,
         signOut,
         updateProfile,

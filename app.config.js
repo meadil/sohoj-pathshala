@@ -1,5 +1,5 @@
 ﻿module.exports = () => {
-  const target = process.env.APP_TARGET || 'student';
+  const target = process.env.APP_TARGET || process.env.EXPO_PUBLIC_APP_TARGET || 'student';
   const isTeacher = target === 'teacher';
 
   return {
@@ -13,7 +13,7 @@
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#FBF7F0',
+      backgroundColor: '#C2703D',
     },
     ios: {
       supportsTablet: true,
@@ -24,11 +24,12 @@
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/android-icon-foreground.png',
-        backgroundColor: '#FBF7F0',
+        backgroundColor: '#C2703D',
       },
       package: isTeacher
         ? 'com.sohojpathshala.teacher'
         : 'com.sohojpathshala.student',
+      googleServicesFile: './google-services.json',
     },
     web: {
       favicon: './assets/favicon.png',
@@ -39,6 +40,9 @@
     ],
     extra: {
       appTarget: target,
+      eas: {
+        projectId: "2ce5b0cd-4cc4-47e8-a2ee-073000e4a050",
+      },
     },
   };
 };

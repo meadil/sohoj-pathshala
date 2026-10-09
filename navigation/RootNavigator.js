@@ -1,8 +1,13 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import StudentRootNavigator from './student/StudentRootNavigator';
 import TeacherRootNavigator from './teacher/TeacherRootNavigator';
+import { linking } from '../lib/linking';
+import {
+  navigationRef,
+  setupNotificationListeners,
+} from '../services/NotificationsService';
 
 /**
  * RootNavigator - Top-level build target router.
@@ -22,8 +27,13 @@ export default function RootNavigator() {
 
   const isTeacherTarget = target === 'teacher';
 
+  useEffect(() => {
+    const unsubscribe = setupNotificationListeners();
+    return unsubscribe;
+  }, []);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       {isTeacherTarget ? <TeacherRootNavigator /> : <StudentRootNavigator />}
     </NavigationContainer>
   );

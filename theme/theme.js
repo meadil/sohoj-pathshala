@@ -1,4 +1,4 @@
-﻿// theme/theme.js
+// theme/theme.js
 // Single source of truth for Sohoj Pathshala visual identity.
 // Direction: Warm clay & gold accents, high-contrast typography, chunky rounded actions.
 // Pairs Claude's editorial restraint with Duolingo's bold, energetic layout moments.
@@ -6,16 +6,18 @@
 export const colors = {
   // Brand Accents
   primary: '#C2703D',          // Warm clay / terracotta — buttons, links, active states
-  primaryPressed: '#A85D2F',   // Deeper clay for active/pressed interactions
+  primaryStrong: '#A85A2B',    // Pressed + 3D button bevel terracotta (from HTML prototype)
+  primaryPressed: '#A85A2B',   // Active state (matches primaryStrong)
   primarySubtle: '#F7EDE6',    // 10% clay tint for badge backgrounds & highlights
 
   secondary: '#EAB308',        // Gold — achievements, high-priority badges, secondary CTAs
   secondaryPressed: '#CA9A04',
+  secondaryBevel: '#E3DAC8',   // Secondary button 3D bevel shadow (from HTML prototype)
   secondarySubtle: '#FEF9E7',  // Soft gold wash
 
   // Status & Feedback
   success: '#22C55E',          // Correct answers, confirmed payments, completed states
-  successDeep: '#166534',      // Deep pressed state / legacy forest green accent
+  successDeep: '#166534',      // Deep pressed state / legacy forest green accent (per design-system.md)
   successSubtle: '#DCFCE7',    // Light green wash for success pills
 
   danger: '#FF3B30',           // Errors, rejected payments, wrong answers
@@ -28,11 +30,12 @@ export const colors = {
 
   // Base Light Mode Canvas & Surfaces
   background: '#FBF7F0',       // Warm off-white canvas
-  backgroundMuted: '#F3EDE2',   // Secondary container & list row background
+  backgroundMuted: '#F3EDE2',  // Secondary container & list row background
   surface: '#FFFFFF',          // Elevated cards & modals
   surfaceMuted: '#F8F4EC',     // Slightly sunken input background
   border: '#E5E5EA',           // Standard divider & card borders
   borderSubtle: '#ECE5D8',     // Soft divider on warm canvas
+  borderDeep: '#DFD5C4',       // Warm-canvas deep dividers (from HTML prototype)
 
   // Base Light Mode Typography
   textPrimary: '#1D1D1F',      // Primary headlines & readable body
@@ -59,9 +62,12 @@ export const radius = {
   xs: 4,
   sm: 8,
   md: 12,
+  input: 14,
   lg: 16,
+  btn: 16,
   xl: 20,
-  card: 22,
+  card: 20,
+  cardLg: 24,
   pill: 999,
 };
 
@@ -86,32 +92,33 @@ export const typography = {
   caption: { fontSize: 12, fontFamily: FONT_REGULAR, lineHeight: 16 },
   captionBold: { fontSize: 12, fontFamily: FONT_SEMIBOLD, lineHeight: 16 },
 
-  // Button labels
-  button: { fontSize: 16, fontFamily: FONT_SEMIBOLD, letterSpacing: 0.2 },
+  // Button labels (Duolingo chunky full-width CTA)
+  button: { fontSize: 19, fontFamily: FONT_SEMIBOLD, letterSpacing: -0.2 },
   buttonSmall: { fontSize: 14, fontFamily: FONT_SEMIBOLD },
 };
 
 // Warm organic drop shadows
 export const shadow = {
   subtle: {
-    shadowColor: '#1A1512',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowColor: '#1D1D1F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 1,
   },
   card: {
-    shadowColor: '#1A1512',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
+    shadowColor: '#1D1D1F',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
     elevation: 2,
   },
   popover: {
-    shadowColor: '#1A1512',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 5,
+    shadowColor: '#1D1D1F',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 4,
   },
 };
+

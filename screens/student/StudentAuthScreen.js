@@ -1,8 +1,7 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,14 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
 import StatusChip from '../../components/StatusChip';
 import { useAlert } from '../../components/CustomAlert';
 import { useUser } from '../../contexts/UserContext';
 import { colors, radius, spacing, typography } from '../../theme/theme';
 
 export default function StudentAuthScreen({ onCompleteRegistration }) {
+  const [lang, setLang] = useState('bn'); // 'bn' | 'en'
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -35,15 +35,22 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
 
   const { signIn, signUpStudent, resendConfirmationEmail } = useUser();
   const alert = useAlert();
+  const isBn = lang === 'bn';
 
   const handleResend = async () => {
     if (!submittedEmail) return;
     setResending(true);
     try {
       await resendConfirmationEmail(submittedEmail);
-      alert('Email Resent', 'A fresh confirmation link has been sent to your inbox.');
+      alert(
+        isBn ? 'ইমেইল পাঠানো হয়েছে' : 'Email Resent',
+        isBn ? 'আপনার ইনবক্সে একটি নতুন নিশ্চিতকরণ লিংক পাঠানো হয়েছে।' : 'A fresh confirmation link has been sent to your inbox.'
+      );
     } catch (err) {
-      alert('Resend Failed', err.message || 'Unable to resend email at this time.');
+      alert(
+        isBn ? 'পুনরায় পাঠানো ব্যর্থ' : 'Resend Failed',
+        err.message || (isBn ? 'এই মুহূর্তে ইমেইল পাঠানো যাচ্ছে না।' : 'Unable to resend email at this time.')
+      );
     } finally {
       setResending(false);
     }
@@ -51,17 +58,26 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      alert('Missing Information', 'Please enter both your email address and password.');
+      alert(
+        isBn ? 'তথ্য প্রয়োজন' : 'Missing Information',
+        isBn ? 'তোমার ইমেইল আর পাসওয়ার্ড দুটোই লিখো।' : 'Add both your email and password.'
+      );
       return;
     }
 
     if (isSignUp) {
       if (!name.trim() || !phone.trim()) {
-        alert('Missing Information', 'Please enter your real name and contact phone number.');
+        alert(
+          isBn ? 'তথ্য প্রয়োজন' : 'Missing Information',
+          isBn ? 'তোমার আসল নাম আর ফোন নম্বর লিখো।' : 'Add your real name and phone number.'
+        );
         return;
       }
       if (password !== confirmPassword) {
-        alert('Password Mismatch', 'Passwords do not match. Please re-enter.');
+        alert(
+          isBn ? 'পাসওয়ার্ড মিলছে না' : 'Password Mismatch',
+          isBn ? 'পাসওয়ার্ড দুটো মিলছে না। আবার লিখুন।' : 'Passwords do not match. Please re-enter.'
+        );
         return;
       }
     }
@@ -86,7 +102,10 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
         await signIn({ email: email.trim(), password });
       }
     } catch (err) {
-      alert('Authentication Failed', err.message || 'Unable to authenticate. Please check your credentials.');
+      alert(
+        isBn ? 'প্রমাণীকরণ ব্যর্থ' : 'Authentication Failed',
+        err.message || (isBn ? 'প্রমাণীকরণ করা যায়নি। তথ্যগুলো ঠিক আছে কিনা দেখুন।' : 'Unable to authenticate. Please check your credentials.')
+      );
     } finally {
       setLoading(false);
     }
@@ -97,24 +116,26 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.confirmContent}>
-          <Card variant="elevated" style={styles.confirmCard}>
-            <StatusChip label="Verification Sent" status="warning" size="md" />
-            <Text style={styles.title}>Check your email</Text>
+          <View style={styles.confirmBox}>
+            <StatusChip label={isBn ? 'যাচাইকরণ পাঠানো হয়েছে' : 'Verification Sent'} status="warning" size="md" />
+            <Text style={styles.title}>{isBn ? 'ইমেইল দেখুন' : 'Check your email'}</Text>
             <Text style={styles.confirmEmail}>{submittedEmail}</Text>
             <Text style={styles.confirmText}>
-              We sent a confirmation link to your inbox. Tap the link in the email to activate your account and start learning.
+              {isBn
+                ? 'আপনার ইনবক্সে একটি নিশ্চিতকরণ লিংক পাঠিয়েছি। অ্যাকাউন্ট চালু করে শেখা শুরু করতে ইমেইলের লিংকে চাপ দিন।'
+                : 'We sent a confirmation link to your inbox. Tap the link in the email to activate your account and start learning.'}
             </Text>
 
             <View style={styles.actionColumn}>
               <Button
-                title={resending ? 'Resending...' : 'Resend Email'}
+                title={resending ? (isBn ? 'পাঠানো হচ্ছে...' : 'Resending...') : (isBn ? 'আবার পাঠান' : 'Resend Email')}
                 variant="outline"
                 size="md"
                 loading={resending}
                 onPress={handleResend}
               />
               <Button
-                title="Back to Sign In"
+                title={isBn ? 'সাইন ইনে ফিরে যান' : 'Back to Sign In'}
                 variant="ghost"
                 size="md"
                 onPress={() => {
@@ -123,7 +144,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
                 }}
               />
             </View>
-          </Card>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -135,27 +156,44 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}
       >
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.header}>
             <StatusChip label="Sohoj Pathshala" status="primary" size="md" />
             <Text style={styles.title}>
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
+              {isSignUp ? (isBn ? 'অ্যাকাউন্ট খুলুন' : 'Create Account') : (isBn ? 'স্বাগতম' : 'Welcome Back')}
             </Text>
             <Text style={styles.subtitle}>
               {isSignUp
-                ? 'Join thousands of SSC & HSC students'
-                : 'Sign in to continue your learning journey'}
+                ? (isBn ? 'হাজারো SSC ও HSC শিক্ষার্থীর সাথে যোগ দিন' : 'Join thousands of SSC & HSC students')
+                : (isBn ? 'শেখা চালিয়ে যেতে সাইন ইন করুন' : 'Sign in to continue your learning journey')}
             </Text>
+            <View style={styles.langToggle}>
+              <TouchableOpacity
+                onPress={() => setLang('bn')}
+                style={[styles.langPill, isBn && styles.langPillActive]}
+              >
+                <Text style={[styles.langText, isBn && styles.langTextActive]}>বাংলা</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setLang('en')}
+                style={[styles.langPill, !isBn && styles.langPillActive]}
+              >
+                <Text style={[styles.langText, !isBn && styles.langTextActive]}>English</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <Card variant="elevated" style={styles.card}>
+          <View style={styles.formContainer}>
             {isSignUp && (
               <>
                 <View style={styles.field}>
-                  <Text style={styles.label}>Real Name (Permanent) *</Text>
+                  <Text style={styles.label}>{isBn ? 'আসল নাম (স্থায়ী) *' : 'Real Name (Permanent) *'}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="e.g. Adil Chowdhury"
+                    placeholder={isBn ? 'যেমন আদিল চৌধুরী' : 'e.g. Adil Chowdhury'}
                     placeholderTextColor={colors.textTertiary}
                     value={name}
                     onChangeText={setName}
@@ -164,10 +202,10 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Nickname (for in-app greetings)</Text>
+                  <Text style={styles.label}>{isBn ? 'ডাকনাম (অ্যাপে সম্বোধনের জন্য)' : 'Nickname (for in-app greetings)'}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="e.g. Adil"
+                    placeholder={isBn ? 'যেমন আদিল' : 'e.g. Adil'}
                     placeholderTextColor={colors.textTertiary}
                     value={nickname}
                     onChangeText={setNickname}
@@ -175,7 +213,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>Phone Number *</Text>
+                  <Text style={styles.label}>{isBn ? 'ফোন নম্বর *' : 'Phone Number *'}</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="01XXXXXXXXX"
@@ -189,7 +227,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
             )}
 
             <View style={styles.field}>
-              <Text style={styles.label}>Email Address *</Text>
+              <Text style={styles.label}>{isBn ? 'ইমেইল ঠিকানা *' : 'Email Address *'}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="student@example.com"
@@ -202,7 +240,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Password *</Text>
+              <Text style={styles.label}>{isBn ? 'পাসওয়ার্ড *' : 'Password *'}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
@@ -215,7 +253,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
 
             {isSignUp && (
               <View style={styles.field}>
-                <Text style={styles.label}>Confirm Password *</Text>
+                <Text style={styles.label}>{isBn ? 'পাসওয়ার্ড আবার লেখো *' : 'Password again *'}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="••••••••"
@@ -228,7 +266,7 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
             )}
 
             <Button
-              title={isSignUp ? 'Create Account' : 'Sign In'}
+              title={isSignUp ? (isBn ? 'অ্যাকাউন্ট খুলুন' : 'Create Account') : (isBn ? 'সাইন ইন' : 'Sign In')}
               variant="primary"
               size="lg"
               loading={loading}
@@ -242,11 +280,11 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
             >
               <Text style={styles.toggleText}>
                 {isSignUp
-                  ? 'Already have an account? Sign In'
-                  : "Don't have an account? Sign Up"}
+                  ? (isBn ? 'অ্যাকাউন্ট আছে? সাইন ইন করুন' : 'Already have an account? Sign In')
+                  : (isBn ? 'অ্যাকাউন্ট নেই? সাইন আপ করুন' : "Don't have an account? Sign Up")}
               </Text>
             </TouchableOpacity>
-          </Card>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -256,21 +294,23 @@ export default function StudentAuthScreen({ onCompleteRegistration }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background, // #FBF7F0 warm canvas
   },
   scroll: {
-    padding: spacing.lg,
+    paddingHorizontal: 20, // 20px matching prototype .sp-body
+    paddingTop: spacing.xl,
+    paddingBottom: 44, // 44px bottom padding matching .sp-body
     flexGrow: 1,
     justifyContent: 'center',
   },
   confirmContent: {
     flex: 1,
-    padding: spacing.lg,
+    paddingHorizontal: 20,
     justifyContent: 'center',
   },
-  confirmCard: {
-    padding: spacing.xl,
+  confirmBox: {
     alignItems: 'center',
+    gap: spacing.sm,
   },
   confirmEmail: {
     ...typography.bodyBold,
@@ -287,52 +327,90 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: 28,
     gap: spacing.xs,
   },
   title: {
     ...typography.hero,
     color: colors.textPrimary,
+    textAlign: 'center',
   },
   subtitle: {
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginTop: 2,
   },
-  card: {
-    padding: spacing.lg,
+  formContainer: {
+    width: '100%',
   },
   field: {
-    marginBottom: spacing.md,
+    marginBottom: 16, // --od-gap: 16px from prototype form
   },
   label: {
-    ...typography.subhead,
+    fontSize: 15,
+    fontFamily: 'HindSiliguri-SemiBold',
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   input: {
-    ...typography.body,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
+    fontSize: 17,
+    fontFamily: 'HindSiliguri-Regular',
+    minHeight: 52, // 52px height from prototype
+    backgroundColor: colors.surface, // #FFFFFF pure white
+    borderWidth: 2, // 2px border from prototype
+    borderColor: colors.border, // #E5E5EA
+    borderRadius: radius.input, // 14px radius from prototype
+    paddingHorizontal: 16,
     color: colors.textPrimary,
   },
   submitBtn: {
-    marginTop: spacing.md,
+    marginTop: 12,
   },
   toggleRow: {
-    marginTop: spacing.lg,
+    marginTop: 20,
     alignItems: 'center',
+    paddingVertical: spacing.sm,
   },
   toggleText: {
-    ...typography.subhead,
+    fontSize: 15,
+    fontFamily: 'HindSiliguri-SemiBold',
     color: colors.primary,
+  },
+  langToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    padding: 3,
+    gap: 2,
+    marginTop: spacing.sm,
+  },
+  langPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    minHeight: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  langPillActive: {
+    backgroundColor: colors.primary,
+  },
+  langText: {
+    fontSize: 14,
+    fontFamily: 'HindSiliguri-SemiBold',
+    color: colors.textSecondary,
+  },
+  langTextActive: {
+    color: '#FFFFFF',
   },
   actionColumn: {
     width: '100%',
     gap: spacing.sm,
+    marginTop: spacing.md,
   },
 });

@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AlertProvider } from './components/CustomAlert';
 import { UserProvider } from './contexts/UserContext';
 import RootNavigator from './navigation/RootNavigator';
@@ -27,14 +28,16 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <AlertProvider>
-        <UserProvider>
-          <StatusBar style="dark" />
-          <RootNavigator />
-        </UserProvider>
-      </AlertProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AlertProvider>
+          <UserProvider>
+            <StatusBar style="dark" />
+            <RootNavigator />
+          </UserProvider>
+        </AlertProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
