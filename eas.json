@@ -8,7 +8,8 @@
       "distribution": "internal",
       "env": {
         "APP_TARGET": "student",
-        "EXPO_PUBLIC_APP_TARGET": "student"
+        "EXPO_PUBLIC_APP_TARGET": "student",
+        "SKIP_FIREBASE": "1"
       }
     },
     "development-teacher": {
@@ -16,21 +17,24 @@
       "distribution": "internal",
       "env": {
         "APP_TARGET": "teacher",
-        "EXPO_PUBLIC_APP_TARGET": "teacher"
+        "EXPO_PUBLIC_APP_TARGET": "teacher",
+        "SKIP_FIREBASE": "1"
       }
     },
     "preview-student": {
       "distribution": "internal",
       "env": {
         "APP_TARGET": "student",
-        "EXPO_PUBLIC_APP_TARGET": "student"
+        "EXPO_PUBLIC_APP_TARGET": "student",
+        "SKIP_FIREBASE": "1"
       }
     },
     "preview-teacher": {
       "distribution": "internal",
       "env": {
         "APP_TARGET": "teacher",
-        "EXPO_PUBLIC_APP_TARGET": "teacher"
+        "EXPO_PUBLIC_APP_TARGET": "teacher",
+        "SKIP_FIREBASE": "1"
       }
     },
     "production-student": {

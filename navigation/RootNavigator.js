@@ -4,10 +4,18 @@ import Constants from 'expo-constants';
 import StudentRootNavigator from './student/StudentRootNavigator';
 import TeacherRootNavigator from './teacher/TeacherRootNavigator';
 import { linking } from '../lib/linking';
-import {
-  navigationRef,
-  setupNotificationListeners,
-} from '../services/NotificationsService';
+// Push is optional. NotificationsService performs native work at module scope,
+// so a top-level import here could abort the entire navigation tree at startup
+// (an uncaught error in a release build closes the app silently — no redbox).
+// Import it defensively and fall back to no-op stubs.
+let navigationRef = null;
+let setupNotificationListeners = () => () => {};
+try {
+  // eslint-disable-next-line global-require
+  ({ navigationRef, setupNotificationListeners } = require('../services/NotificationsService'));
+} catch (err) {
+  console.warn('Push: NotificationsService unavailable — push disabled.', err?.message);
+}
 
 /**
  * RootNavigator - Top-level build target router.
@@ -28,12 +36,18 @@ export default function RootNavigator() {
   const isTeacherTarget = target === 'teacher';
 
   useEffect(() => {
-    const unsubscribe = setupNotificationListeners();
-    return unsubscribe;
+    let unsubscribe;
+    try {
+      unsubscribe = setupNotificationListeners();
+    } catch (err) {
+      console.warn('Push: listener setup failed — push disabled.', err?.message);
+      return undefined;
+    }
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
   }, []);
 
   return (
-    <NavigationContainer ref={navigationRef} linking={linking}>
+    <NavigationContainer ref={navigationRef || undefined} linking={linking}>
       {isTeacherTarget ? <TeacherRootNavigator /> : <StudentRootNavigator />}
     </NavigationContainer>
   );

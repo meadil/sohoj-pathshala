@@ -1,7 +1,20 @@
 ﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
-import { syncPushTokenForUser } from '../services/NotificationsService';
+
+// Push is OPTIONAL, but NotificationsService executes native code at module
+// scope (expo-notifications). Importing it at the top level means any failure
+// inside it aborts this module, and therefore UserProvider, and therefore the
+// entire app — before a single screen renders. In a release build an uncaught
+// JS error does not show a redbox; the app just closes. So isolate it fully:
+// a no-op stub keeps auth working even if notifications are unusable.
+let syncPushTokenForUser = () => {};
+try {
+  // eslint-disable-next-line global-require
+  ({ syncPushTokenForUser } = require('../services/NotificationsService'));
+} catch (err) {
+  console.warn('Push: NotificationsService failed to load — push disabled.', err?.message);
+}
 
 const UserContext = createContext(null);
 

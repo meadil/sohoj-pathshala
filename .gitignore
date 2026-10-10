@@ -42,3 +42,16 @@ yarn-error.*
 # Firebase config — contains project identifiers, must never be committed
 /google-services.json
 /android/app/google-services.json
+
+# IDE / editor
+.claude/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+*.apk
+*.aab
+
+# Logs
+*.log

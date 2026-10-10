@@ -34,15 +34,25 @@ try {
 export const navigationRef = createNavigationContainerRef();
 
 if (Notifications) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-    }),
-  });
+  // This runs at MODULE SCOPE, before React renders. In Expo Go the require()
+  // above fails so this block never executes — but in a standalone APK
+  // expo-notifications loads, and this unguarded native call was the one
+  // code path that could take the whole app down at launch. Push is optional,
+  // so it must never be able to kill startup.
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (err) {
+    console.warn('Push: setNotificationHandler failed — push disabled.', err?.message);
+    Notifications = null;
+  }
 }
 
 async function ensureAndroidChannel() {

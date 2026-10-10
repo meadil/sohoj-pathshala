@@ -114,12 +114,44 @@ screens, four routes and `screens/student/course/index.js`.
 - [ ] Audit every remaining table for `USING (true)` SELECT policies. Two were found and
       fixed (`cq_videos`, `mcq_deck_questions`); the rest have not been swept.
 
-## 11. Legal copy
+## 11. Config resilience — missing env vars kill the app silently
+
+Discovered 2026-10-09 while diagnosing an APK that closed instantly on launch.
+
+`lib/supabase.js` calls `createClient()` at **module top-level**. If
+`EXPO_PUBLIC_SUPABASE_URL` / `ANON_KEY` are absent, `createClient` throws while the
+bundle is still evaluating — before React, before any error boundary, before
+`AppRegistry` mounts. Nothing can catch it, so the process aborts and the app
+closes with **no redbox and no error UI**. In a release build, every startup
+exception looks identical: instant close.
+
+- [ ] Build the Supabase client **lazily** (create on first use) so a missing key
+      surfaces as a catchable error rather than a `SIGABRT`.
+- [ ] Render a visible "configuration missing" state instead of a blank/aborted app.
+- [ ] Audit other module-scope side effects on the startup path. `NotificationsService`
+      was fixed (guarded `setNotificationHandler`, lazy `require` in `UserContext`
+      and `RootNavigator`), but the pattern may exist elsewhere.
+- [ ] Add a release-build smoke test. Every failure so far was invisible in Expo Go
+      and only appeared in the APK. Consider building an APK early in the cycle
+      rather than at the end.
+
+**Wider lesson — EAS only uploads git-tracked files.** This bit twice:
+
+| Missing | Symptom | Fix applied |
+|---|---|---|
+| `google-services.json` (gitignored) | Build error `EAS_BUILD_MISSING_GOOGLE_SERVICES_JSON_ERROR` | `SKIP_FIREBASE=1` flag drops the reference |
+| `.env` (gitignored) | App closed instantly; `supabaseUrl is required` | Vars registered via `eas env:create` |
+
+Local `.env` works in Expo Go and silently does not exist for EAS. Anything the
+bundle needs must live in `eas.json` `env` or EAS environment variables — not in
+a gitignored file.
+
+## 12. Legal copy
 
 - [ ] Real ToS / Privacy text. `LegalScreen` and `TermsStepScreen` are placeholders awaiting
       your legal input, not written by engineering.
 
-## 12. Signup
+## 13. Signup
 
 - [ ] Wire real email OTP. `AccountStepScreen` returns before `signInWithOtp`, so a fresh
       signup creates **no session at all** and lands in an untestable app. Step 2 also claims
@@ -127,7 +159,7 @@ screens, four routes and `screens/student/course/index.js`.
 - [ ] Decide whether the `TEMP DEV BYPASS` blocks are stripped for the launch build. Keeping
       them means anyone can "sign up" into a session-less, empty app — a poor first run.
 
-## 13. Documentation
+## 14. Documentation
 
 - [ ] `STATUS.md` is stale in several places and still describes solved bugs as open. Rewrite
       or delete it; it is actively misleading at this point.

@@ -166,8 +166,14 @@ export default function TeacherCourseEditorScreen({ navigation, route }) {
   // them entirely rather than shown and then refused by the database.
   const canDelete = isOwner || course?.created_by === session?.user?.id;
 
-  // Publishing is likewise creator-or-owner only.
-  const canPublish = isOwner || course?.created_by === session?.user?.id;
+  // Publishing follows the DATABASE policy, not the creator rule:
+  // courses_update_instructor_owner is (is_course_instructor OR is_owner),
+  // i.e. a listed instructor is already permitted to publish. The UI was
+  // stricter than the permission it guards, which hid the button entirely on
+  // seeded courses (created_by IS NULL, since they were backfilled per class
+  // level) and left nobody but an owner able to publish them.
+  // Delete stays creator-or-owner because courses DELETE is genuinely stricter.
+  const canPublish = canEdit;
 
   const load = async () => {
     try {
@@ -1619,7 +1625,8 @@ export default function TeacherCourseEditorScreen({ navigation, route }) {
                       rightIcon={<SaveIcon size={22} color="#FFFFFF" />}
                     />
                   )}
-                  {/* Publish / unpublish — creator or owner only. */}
+                  {/* Publish / unpublish — any listed instructor or the owner,
+                      matching courses_update_instructor_owner. */}
                   {canPublish && (
                     <Button
                       title={
