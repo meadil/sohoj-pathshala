@@ -6,15 +6,14 @@ Built for SSC and HSC Science students in Bangladesh.
 
 ---
 
-## The problem
+## What it is
 
-Good coaching in Bangladesh means private tuition, and private tuition means money
-most families don't have. Free YouTube is scattered and unstructured. Students
-who can't afford coaching end up with no path to the board exam.
+A Bengali-language course app for SSC and HSC Science students in Bangladesh.
+Video lessons, practice questions, weekly quizzes, and progress tracking — with
+a separate app on the teacher side for creating courses and managing students.
 
-Sohoj Pathshala puts a structured course — video lessons, practice questions,
-weekly quizzes, and progress tracking — in a student's pocket for a price they
-can actually pay.
+Students buy a course by bKash and submit the transaction ID; it's confirmed
+manually. Everything in the interface is in Bengali.
 
 ---
 
@@ -154,4 +153,3 @@ running anything.
 ---
 
 Built by the Sohoj Pathshala team.
-MIT licensed.
